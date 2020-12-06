@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>URL関係のSEOツール</title>
+	<link rel="stylesheet" href="">
+	<link rel="shortcut icon" href="favicon.ico">
+</head>
+<body onload="document.form.urlForm.focus()">
+	<script>
+		function urlSummary() {
+			var url = document.form.urlForm.value;
+			textCanonical(url);
+			textAlternate(url);
+			textHtaccess(url);
+			textRobots(url);
+			texturlunity(url);
+		}
+		function textAlternate(url) {
+			document.form.alternateCulumn.value = '<link rel="alternate" media="only screen and (max-width: 640px)" href="' + url + 'sp/" />';
+		}
+		function textCanonical(url) {
+			document.form.canonicalCulumn.value = '<link rel="canonical" href="'+ url +'" />';
+		}
+		function textHtaccess(url) {
+			if(url.match('www.')){
+				escapeUrl = url.replace(/http\:\/\/www\.(.*)\//,'$1');
+			}else{
+				escapeUrl = url.replace(/http\:\/\/(.*)\//,'www.$1');
+			}
+			var regExp = RegExp('\.', 'g');
+			var escapeUrl = escapeUrl.replace(/([^0-9A-Za-z_\-\/:])/g,'\\.');
+			//コメント有りにチェックが入っているか
+			if(document.form.comment.checked){
+				var wwwComment = '#「www.」ありなしを統一\n';
+				var indexComment = '#「index」ありなしを統一\n';
+				var sslComment = '#「https://」に統一\n';
+			}else {
+				var wwwComment = '';
+				var indexComment = '';
+				var sslComment = '';
+			}
+			//「www.」統一にチェックが入っているか
+			if(document.form.www.checked){
+				//「www.」統一文を変数に定義
+				var wwwText = wwwComment + 'RewriteEngine on\nRewriteCond %{HTTP_HOST} ^('+ escapeUrl +')(:80)? [NC]\nRewriteRule ^(.*) ' +  url +'$1 [R=301,L]\n';
+			}else{
+				var wwwText = '';
+			}
+			//「index」html,phpのどちらにチェックが入っているか
+			if(document.form.noIndexHtml.checked) {
+				var indexType = 'index.html';
+			}else{
+				var indexType = 'index.php';
+			}
+			//「index」統一にチェックが入っているか
+			if(document.form.index.checked){
+				//「index」統一文を変数に定義
+				var indexText = indexComment + 'RewriteEngine on\nRewriteCond %{THE_REQUEST} ^.*/' + indexType + '\nRewriteRule ^(.*)' + indexType + '$ '+ url +'$1 [R=301,L]\n';
+			}else{
+				var indexText = '';
+			}
+			if(document.form.ssl.checked){
+				var sslText = sslComment + 'RewriteEngine On\nRewriteCond %{HTTPS} off\nRewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R,L]';
+			}else {
+				var sslText = '';
+			}
+			document.form.htaccessCulumn.value = wwwText + indexText + sslText;
+		}
+		function textRobots(url) {
+			document.form.robotsCulumn.value = 'User-Agent: \nAllow: /\nSitemap: '+ url + 'sitemap.xml';
+		}
+		function texturlunity(url) {
+			if( url.match('.html') || url.match('.php') ){
+							if(url.match('www.')){
+				escapeUrl = url.replace(/(.*)www\.(.*)\//,'$1$2/');
+				if(escapeUrl.match('http://')){
+					httpwww = escapeUrl.replace(/http(.*)\//,'https$1/');
+				}else{
+					httpwww = escapeUrl.replace(/https(.*)\//,'http$1/');
+				}
+			}else{
+				escapeUrl = url.replace(/(.*)\:\/\/(.*)\//,'$1://www.$2/');
+				if(escapeUrl.match('http://')){
+					httpwww = escapeUrl.replace(/http(.*)\//,'https$1/');
+				}else{
+					httpwww = escapeUrl.replace(/https(.*)\//,'http$1/');
+				}
+			}
+			if(url.match('http://')){
+				httpsurl = url.replace(/http(.*)\//,'https$1/');
+			}else{
+				httpsurl = url.replace(/https(.*)\//,'http$1/');
+			}
+			document.form.urlunity.value = url + '\n' + escapeUrl + '\n' + httpsurl + '\n' + httpwww;
+			}else{
+			if(url.match('www.')){
+				escapeUrl = url.replace(/(.*)www\.(.*)\//,'$1$2/');
+				if(escapeUrl.match('http://')){
+					httpwww = escapeUrl.replace(/http(.*)\//,'https$1/');
+				}else{
+					httpwww = escapeUrl.replace(/https(.*)\//,'http$1/');
+				}
+			}else{
+				escapeUrl = url.replace(/(.*)\:\/\/(.*)\//,'$1://www.$2/');
+				if(escapeUrl.match('http://')){
+					httpwww = escapeUrl.replace(/http(.*)\//,'https$1/');
+				}else{
+					httpwww = escapeUrl.replace(/https(.*)\//,'http$1/');
+				}
+			}
+			if(url.match('http://')){
+				httpsurl = url.replace(/http(.*)\//,'https$1/');
+			}else{
+				httpsurl = url.replace(/https(.*)\//,'http$1/');
+			}
+			document.form.urlunity.value = url + '\n' + url + 'index.html\n' + url + 'index.php\n' + url + 'aaaaa\n' + escapeUrl + '\n' + escapeUrl + 'index.html\n' + escapeUrl + 'index.php\n' + escapeUrl + 'aaaaa\n' + httpsurl + '\n' + httpsurl + 'index.html\n' + httpsurl + 'index.php\n' + httpsurl + 'aaaaa\n' + httpwww + '\n' + httpwww + 'index.html\n' + httpwww + 'index.php\n' + httpwww + 'aaaaaa';
+			};
+		}
+		function connectText(indexHtml,indexPhp,ischecked){
+			if(ischecked == true){
+				document.getElementById(indexHtml).disabled = false;
+				document.getElementById(indexPhp).disabled = false;
+			}else {
+				document.getElementById(indexHtml).disabled = true;
+				document.getElementById(indexPhp).disabled = true;
+			}
+		}
+	</script>
+	<h1>URL関係のSEOツール</h1>
+	<p>SEO用に統一したいURLを入力してください。（www.のありなしなど）</p>
+	<form action="./" id="form" name="form">
+		<input type="url" id="urlForm" placeholder="http://url.com/" onkeyup="urlSummary()" onblur="urlSummary()">
+		<h2>URLの統一検索</h2>
+		<textarea name="urlunity" id="urlunity" cols="100" rows="20" onclick="this.select()"></textarea>
+		<div><a href="https://httpstatus.io/" target="_blank">HTTP Status Code Checker</a></div>
+		<h2>canonical</h2>
+		<input type="text" id="canonicalCulumn" value="" placeholder="canonical文が表示されます" size="100" onclick="this.select()">
+		<h2>alternate</h2>
+		<input type="text" id="alternateCulumn" value="" placeholder="alternate文が表示されます" size="100" onclick="this.select()">
+		<h2>.htaccess</h2>
+		<ul>
+			<li><label><input type="checkbox" name="www" value="" checked onclick="urlSummary()">「www.」統一</label><label><input type="checkbox" name="index" checked onclick="urlSummary();connectText('noIndexHtml','noIndexPhp',this.checked);">「index」統一</label><label><input type="checkbox" name="ssl" value="" onclick="urlSummary()">「https://」統一</label><label><input type="checkbox" name="comment" value="" onclick="urlSummary()">コメントアウトあり</label></li>
+			<li><label><input type="radio" id="noIndexHtml" name="indexSelect" value="" checked onclick="urlSummary()">「index.html」なし（ありはないです、すみません）</label><label><input type="radio" id="noIndexPhp" name="indexSelect" value="" onclick="urlSummary()">「index.php」なし（本当にすみません）</label></li>
+		</ul>
+		<textarea name="htaccessCulumn" id="htaccessCulumn" cols="100" rows="14" onclick="this.select()"></textarea>
+		<h2>robots.txt</h2>
+		<textarea name="robotsCulumn" id="robotsCulumn" cols="100" rows="10" onclick="this.select()"></textarea>
+	</form>
+</body>
+</html>
